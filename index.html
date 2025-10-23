@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Data Processing CI/CD</title>
+    <style>
+        :root {
+            --bg-color: #1a1b26;
+            --fg-color: #c0caf5;
+            --card-bg: #24283b;
+            --border-color: #414868;
+            --active-tab-bg: #7aa2f7;
+            --active-tab-fg: #1a1b26;
+            --tab-hover-bg: #292e42;
+            --pre-bg: #1e1e2e;
+            --line-number-color: #545c7e;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+            /* Syntax Highlighting */
+            --hl-keyword: #bb9af7;
+            --hl-string: #9ece6a;
+            --hl-comment: #565f89;
+            --hl-function: #7aa2f7;
+            --hl-number: #ff9e64;
+            --hl-key: #c0caf5;
+            --hl-header: #7dcfff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--fg-color);
+            line-height: 1.6;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            color: #a9b1d6;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1rem;
+            color: #787c99;
+        }
+
+        .file-viewer {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            list-style-type: none;
+            background-color: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 1rem;
+        }
+
+        .tab-link {
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px; /* Overlap border */
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            font-weight: 500;
+        }
+
+        .tab-link:hover {
+            background-color: var(--tab-hover-bg);
+        }
+
+        .tab-link.active {
+            color: var(--active-tab-fg);
+            background-color: var(--active-tab-bg);
+            border-bottom-color: transparent;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        .tab-content {
+            padding: 0;
+        }
+
+        .content-panel {
+            display: none;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+        
+        .readme-content {
+            padding: 1.5rem 2rem;
+        }
+        
+        .readme-content h2 {
+            margin-top: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .readme-content ul {
+            padding-left: 20px;
+        }
+        
+        .readme-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .readme-content code {
+            background-color: var(--pre-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: "Fira Code", monospace;
+        }
+
+        pre {
+            background-color: var(--pre-bg);
+            color: var(--fg-color);
+            padding: 1.5rem;
+            margin: 0;
+            overflow-x: auto;
+            font-family: "Fira Code", "Courier New", monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre;
+        }
+
+        /* Syntax Highlighting */
+        .kw { color: var(--hl-keyword); }
+        .str { color: var(--hl-string); }
+        .cmt { color: var(--hl-comment); font-style: italic; }
+        .fn { color: var(--hl-function); }
+        .num { color: var(--hl-number); }
+        .key { color: var(--hl-key); font-weight: bold; }
+        .hdr { color: var(--hl-header); }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            .tabs {
+                flex-wrap: wrap;
+                padding: 0;
+            }
+            .tab-link {
+                flex-grow: 1;
+                text-align: center;
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Python Data Processing with CI/CD</h1>
+            <p>A single-file application showcasing a data script and its deployment pipeline.</p>
+        </header>
+
+        <div class="file-viewer">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="readme">README.md</li>
+                <li class="tab-link" data-tab="py">execute.py</li>
+                <li class="tab-link" data-tab="csv">data.csv</li>
+                <li class="tab-link" data-tab="yml">.github/workflows/ci.yml</li>
+            </ul>
+
+            <div class="tab-content">
+                <div id="readme" class="content-panel active">
+                    <div class="readme-content">
+                        <h1>Python Data Processing with CI/CD</h1>
+                        <p>This project demonstrates a complete single-file application containing a Python script for data processing, its associated data, and a CI/CD pipeline definition using GitHub Actions.</p>
+                        
+                        <h2>Project Structure</h2>
+                        <ul>
+                            <li><code>execute.py</code>: A Python script that reads sales data from <code>data.csv</code>, performs some basic analysis (e.g., calculates revenue, identifies top products), and outputs the results as a JSON object.</li>
+                            <li><code>data.csv</code>: The input data file containing sales records.</li>
+                            <li><code>.github/workflows/ci.yml</code>: A GitHub Actions workflow that automates testing, linting, and deployment.</li>
+                        </ul>
+                        
+                        <h2>How it Works</h2>
+                        <p>The Python script uses the <code>pandas</code> library to perform the data manipulation. It's designed to run with Python 3.11+ and Pandas 2.3+.</p>
+                        <p>The original <code>execute.py</code> script contained a non-trivial error (a typo in a column name, <code>revenew</code> instead of <code>revenue</code>) which has been fixed. It was also updated to read from <code>data.csv</code> instead of the original <code>data.xlsx</code>.</p>
+                        
+                        <h2>Continuous Integration (CI)</h2>
+                        <p>The GitHub Actions workflow defined in <code>ci.yml</code> is triggered on every <code>push</code> to the <code>main</code> branch. It performs the following steps:</p>
+                        <ol>
+                            <li><strong>Checkout Code</strong>: Checks out the repository's code.</li>
+                            <li><strong>Set up Python</strong>: Configures a Python 3.11 environment.</li>
+                            <li><strong>Install Dependencies</strong>: Installs <code>pandas</code> and <code>ruff</code>.</li>
+                            <li><strong>Lint Code</strong>: Runs <code>ruff</code> to check for code quality and style issues. The results are displayed in the CI log.</li>
+                            <li><strong>Generate Result</strong>: Executes <code>python execute.py</code> and redirects the JSON output to a file named <code>result.json</code>.</li>
+                            <li><strong>Deploy to GitHub Pages</strong>: The generated <code>result.json</code> file is published as an artifact and deployed to GitHub Pages, making the analysis result accessible via a public URL.</li>
+                        </ol>
+                        <p><strong>Note</strong>: The <code>result.json</code> file is intentionally not committed to the repository; it is a build artifact generated exclusively within the CI pipeline.</p>
+                    </div>
+                </div>
+
+                <div id="py" class="content-panel">
+<pre><code><span class="kw">import</span> json
+
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="cmt"># Read the data from CSV</span>
+    df = pd.read_csv(<span class="str">"data.csv"</span>)
+
+    <span class="cmt"># Compute revenue</span>
+    df[<span class="str">"revenue"</span>] = df[<span class="str">"units"</span>] * df[<span class="str">"price"</span>]
+
+    <span class="cmt"># row_count</span>
+    row_count = len(df)
+
+    <span class="cmt"># regions: count of distinct regions</span>
+    regions_count = df[<span class="str">"region"</span>].nunique()
+
+    <span class="cmt"># top_n_products_by_revenue (n=3)</span>
+    n = <span class="num">3</span>
+    top_products = (
+        df.groupby(<span class="str">"product"</span>)[<span class="str">"revenue"</span>]
+        .sum()
+        .sort_values(ascending=<span class="kw">False</span>)
+        .head(n)
+        .reset_index()
+    )
+    top_products_list = [
+        {<span class="str">"product"</span>: row[<span class="str">"product"</span>], <span class="str">"revenue"</span>: float(row[<span class="str">"revenue"</span>])}
+        <span class="kw">for</span> _, row <span class="kw">in</span> top_products.iterrows()
+    ]
+
+    <span class="cmt"># rolling_7d_revenue_by_region: for each region, last value of 7-day moving average of daily revenue</span>
+    df[<span class="str">"date"</span>] = pd.to_datetime(df[<span class="str">"date"</span>])  <span class="cmt"># ensure datetime</span>
+    daily_rev = (
+        df.groupby([<span class="str">"region"</span>, <span class="str">"date"</span>])[<span class="str">"revenue"</span>]  <span class="cmt"># FIX: Fixed typo from "revenew"</span>
+        .sum()
+        .reset_index()
+        .sort_values([<span class="str">"region"</span>, <span class="str">"date"</span>])  <span class="cmt"># ensure sorted for rolling</span>
+    )
+
+    <span class="cmt"># Compute 7-day rolling mean of revenue per region, retaining the region column</span>
+    rolling = (
+        daily_rev.groupby(<span class="str">"region"</span>)
+        .apply(<span class="kw">lambda</span> g: g.set_index(<span class="str">"date"</span>)[<span class="str">"revenue"</span>].rolling(<span class="str">"7D"</span>).mean(), include_groups=<span class="kw">False</span>)
+        .reset_index(name=<span class="str">"rolling_7d_revenue"</span>)
+    )
+
+    last_rolling = (
+        rolling.sort_values([<span class="str">"region"</span>, <span class="str">"date"</span>])  <span class="cmt"># ensure order</span>
+        .groupby(<span class="str">"region"</span>)
+        .tail(<span class="num">1</span>)
+    )
+
+    rolling_summary = {
+        row[<span class="str">"region"</span>]: float(row[<span class="str">"rolling_7d_revenue"</span>]) <span class="kw">for</span> _, row <span class="kw">in</span> last_rolling.iterrows()
+    }
+
+    result = {
+        <span class="str">"row_count"</span>: int(row_count),
+        <span class="str">"regions"</span>: int(regions_count),
+        <span class="str">"top_n_products_by_revenue"</span>: top_products_list,
+        <span class="str">"rolling_7d_revenue_by_region"</span>: rolling_summary,
+    }
+
+    print(json.dumps(result, indent=<span class="num">2</span>))
+
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()
+</code></pre>
+                </div>
+
+                <div id="csv" class="content-panel">
+<pre><code><span class="hdr">date,region,product,units,price</span>
+2023-10-01,North,Gadget,10,15.50
+2023-10-01,South,Widget,5,25.00
+2023-10-02,North,Gadget,12,15.50
+2023-10-02,West,Thingamajig,20,5.25
+2023-10-03,South,Widget,8,25.00
+2023-10-03,East,Gadget,15,16.00
+2023-10-04,North,Gadget,11,15.50
+2023-10-05,West,Thingamajig,22,5.25
+2023-10-06,South,Widget,7,25.50
+2023-10-07,East,Gadget,18,16.00
+2023-10-08,North,Gadget,14,15.50
+2023-10-08,West,Thingamajig,18,5.50
+2023-10-09,South,Widget,9,25.50
+2023-10-09,East,Gadget,20,16.00
+2023-10-10,North,Widget,10,25.00
+2023-10-10,West,Thingamajig,25,5.50
+2023-10-11,South,Gadget,13,16.00
+2023-10-12,East,Widget,11,25.50
+2023-10-13,North,Thingamajig,30,5.50
+2023-10-14,West,Gadget,16,16.00
+</code></pre>
+                </div>
+
+                <div id="yml" class="content-panel">
+<pre><code><span class="key">name:</span> <span class="str">CI</span>
+
+<span class="key">on:</span>
+  <span class="key">push:</span>
+    <span class="key">branches:</span> [ <span class="str">main</span> ]
+  <span class="key">workflow_dispatch:</span>
+
+<span class="cmt"># Permissions for GitHub Pages deployment</span>
+<span class="key">permissions:</span>
+  <span class="key">contents:</span> <span class="str">read</span>
+  <span class="key">pages:</span> <span class="str">write</span>
+  <span class="key">id-token:</span> <span class="str">write</span>
+
+<span class="key">jobs:</span>
+  <span class="key">build-and-deploy:</span>
+    <span class="key">runs-on:</span> <span class="str">ubuntu-latest</span>
+    <span class="key">steps:</span>
+      <span class="key">- name:</span> <span class="str">Checkout repository</span>
+        <span class="key">uses:</span> <span class="str">actions/checkout@v4</span>
+
+      <span class="key">- name:</span> <span class="str">Set up Python</span>
+        <span class="key">uses:</span> <span class="str">actions/setup-python@v5</span>
+        <span class="key">with:</span>
+          <span class="key">python-version:</span> <span class="str">'3.11'</span>
+
+      <span class="key">- name:</span> <span class="str">Install dependencies</span>
+        <span class="key">run:</span> |
+          python -m pip install --upgrade pip
+          pip install pandas==2.3 ruff
+
+      <span class="key">- name:</span> <span class="str">Lint with ruff</span>
+        <span class="key">run:</span> <span class="str">ruff check . --output-format=github</span>
+        
+      <span class="key">- name:</span> <span class="str">Run script and generate result</span>
+        <span class="key">run:</span> <span class="str">python execute.py > result.json</span>
+      
+      <span class="key">- name:</span> <span class="str">Setup Pages</span>
+        <span class="key">uses:</span> <span class="str">actions/configure-pages@v5</span>
+
+      <span class="key">- name:</span> <span class="str">Upload artifact</span>
+        <span class="key">uses:</span> <span class="str">actions/upload-pages-artifact@v3</span>
+        <span class="key">with:</span>
+          <span class="cmt"># Upload just the result.json file</span>
+          <span class="key">path:</span> <span class="str">'result.json'</span>
+
+      <span class="key">- name:</span> <span class="str">Deploy to GitHub Pages</span>
+        <span class="key">id:</span> <span class="str">deployment</span>
+        <span class="key">uses:</span> <span class="str">actions/deploy-pages@v4</span>
+</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-link');
+            const contentPanels = document.querySelectorAll('.content-panel');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+
+                    // Deactivate all tabs and panels
+                    tabs.forEach(item => item.classList.remove('active'));
+                    contentPanels.forEach(panel => panel.classList.remove('active'));
+
+                    // Activate the clicked tab and corresponding panel
+                    tab.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
